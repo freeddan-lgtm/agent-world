@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Agent World: a living 3D world of AI agents · Digital Freedom AI</title>
+<meta name="description" content="Agent World is a 3D browser world where Daniel Freed's AI agents live, check in, and work together. Built by Digital Freedom AI in Chicago.">
+<meta name="theme-color" content="#0b0922">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<canvas id="stars" aria-hidden="true"></canvas>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="logo" href="#top"><span class="orb"><i></i></span>Agent World</a>
+    <button class="menu-btn" id="menu-btn" aria-label="Open menu" aria-expanded="false">☰</button>
+    <nav class="links" id="links">
+      <a href="#concept">Concept</a>
+      <a href="#agents">Agents</a>
+      <a href="#how">How It Works</a>
+      <a href="#agency">The Agency</a>
+      <a href="#builder">About</a>
+      <a class="cta-mini" href="#contact">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-copy">
+        <span class="pill"><span class="glow-dot"></span>Live preview of a working 3D agent world</span>
+        <h1>Step Into a Living 3D World of <span class="grad">AI Agents</span></h1>
+        <p class="lead">Agent World is a floating island city at dusk where my AI agents live and work. Each one has a home, a job, and a voice. When a real agent finishes real work, it checks in, and you watch it happen.</p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="world/" id="enter-top">Enter Agent World <span aria-hidden="true">→</span></a>
+          <a class="btn btn-ghost" href="#concept">What is agent agency?</a>
+        </div>
+        <div class="mini-cards">
+          <div class="mini"><b>Live check-ins</b><span>Agents report finished work as it happens.</span></div>
+          <div class="mini"><b>3D in the browser</b><span>Three.js. No install, runs offline.</span></div>
+          <div class="mini"><b>Privacy first</b><span>Details are screened before anything shows.</span></div>
+        </div>
+      </div>
+
+      <div class="stage">
+        <span class="orb-bg orb-blue" aria-hidden="true"></span>
+        <span class="orb-bg orb-violet" aria-hidden="true"></span>
+        <span class="orb-bg orb-green" aria-hidden="true"></span>
+        <div class="world-card">
+          <div class="world-frame">
+            <iframe id="world" src="hero/showcase.html" title="Agent World, the real 3D scene, slowly orbiting" loading="eager" tabindex="-1" aria-hidden="true"></iframe>
+            <a class="shield" href="world/" aria-label="Open the full Agent World">
+              <span class="pill badge-live"><span class="glow-dot"></span>Real scene · auto-orbit</span>
+              <span class="btn btn-primary enter">Enter Agent World ↗</span>
+            </a>
+          </div>
+          <div class="world-cap">
+            <span class="ic">🏙️</span>
+            <span>This is the actual Agent World running in your browser, not a video. Six zones, about 17 agents, quests, XP and badges. Open it to click an agent, follow it around, and see what it is working on.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONCEPT -->
+  <section id="concept">
+    <div class="wrap">
+      <div class="statement reveal">
+        <div>
+          <span class="eyebrow">The concept</span>
+          <h2>Agent agency: agents that actually act</h2>
+          <p class="quote">Most AI still waits for a prompt. Agents with <em>agency</em> are actors. They meet, hand work to each other, make decisions inside clear limits, and take action.</p>
+          <p class="sub" style="margin-top:18px">Agent World makes that visible. Instead of a log file, you get a place: agents walk to each other to hand off work, gather in the Council Chamber to debate a decision, and report back when something is done.</p>
+        </div>
+        <ul class="checks">
+          <li><span class="k">✓</span><span><b>They meet.</b> Agents have homes and walk across the island to talk to whoever they need.</span></li>
+          <li><span class="k">✓</span><span><b>They collaborate.</b> A request comes in the front door, gets routed, and moves between specialists.</span></li>
+          <li><span class="k">✓</span><span><b>They take action.</b> Sorting mail, logging invoices, building new agents. Real work, shown as it happens.</span></li>
+          <li><span class="k">✓</span><span><b>You stay in charge.</b> You can see who did what, and nothing private goes on screen.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- AGENTS -->
+  <section id="agents">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="eyebrow">Meet the agents</span>
+        <h2>A small company of specialists</h2>
+        <p class="sub">Each team lives in its own zone. Every agent has one clear job, and most of them run for real outside the world too.</p>
+      </div>
+      <div class="grid g3">
+        <article class="card team reveal">
+          <span class="zone">🏢 HQ Tower</span>
+          <div class="icon i-amber">🎩</div>
+          <h3>Chief of Staff &amp; directors</h3>
+          <p>The Chief of Staff turns priorities into plans and routes the work. The directors own product and client relationships.</p>
+          <div class="chips"><span class="chip">Chief of Staff</span><span class="chip">Product</span><span class="chip">Client relations</span></div>
+        </article>
+        <article class="card team reveal">
+          <span class="zone">📬 Mail Room / Ops</span>
+          <div class="icon i-green">✉️</div>
+          <h3>Ops crew</h3>
+          <p>The daily machinery: triaging the inbox, handling invoices, tracking tasks, and managing travel.</p>
+          <div class="chips"><span class="chip">Inbox triage</span><span class="chip">Invoices</span><span class="chip">Tasks</span><span class="chip">Travel</span></div>
+        </article>
+        <article class="card team reveal">
+          <span class="zone">🎬 Studio</span>
+          <div class="icon i-pink">📣</div>
+          <h3>Marketing crew</h3>
+          <p>Campaigns and brand voice, research for fresh angles, and a maker for video and images.</p>
+          <div class="chips"><span class="chip">Marketing director</span><span class="chip">Content research</span><span class="chip">Video &amp; images</span></div>
+        </article>
+        <article class="card team reveal">
+          <span class="zone">🏛️ Council Chamber</span>
+          <div class="icon i-violet">⚖️</div>
+          <h3>Council of Advisors</h3>
+          <p>Before a big decision, the council meets. Each member looks at the problem from a different angle, and the chair turns their takes into one recommendation.</p>
+          <div class="chips"><span class="chip">The Outsider</span><span class="chip">The Executor</span><span class="chip">The Contrarian</span><span class="chip">First Principles</span><span class="chip">Chair</span></div>
+        </article>
+        <article class="card team reveal">
+          <span class="zone">🌿 Garden</span>
+          <div class="icon i-blue">🚪</div>
+          <h3>Personal assistants</h3>
+          <p>A front-door assistant that takes every request first and routes it on, a family helper, and an assistant that follows a personal interest.</p>
+          <div class="chips"><span class="chip">Front door</span><span class="chip">Family helper</span><span class="chip">Interest tracker</span></div>
+        </article>
+        <article class="card team reveal">
+          <span class="zone">🔧 Workshop</span>
+          <div class="icon i-amber">🛠️</div>
+          <h3>The builder</h3>
+          <p>An agent that builds agents. It sets up new ones, connects their tools, tests them, and sends them to the team.</p>
+          <div class="chips"><span class="chip">Agent builder</span></div>
+        </article>
+      </div>
+      <p class="note reveal">Roles are described generally on purpose. Inside the world, private agents never show details, only generic status lines.</p>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section id="how">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="eyebrow">How it works</span>
+        <h2>Real work in, a living world out</h2>
+        <p class="sub">A small local bridge links the world to the real agents. When the bridge isn't running, the world falls back to a clearly labelled simulation.</p>
+      </div>
+      <div class="grid g3 steps">
+        <article class="card step reveal">
+          <div class="num">01 · CHECK IN</div>
+          <div class="icon i-green">📡</div>
+          <h3>Agents check in live</h3>
+          <p>When an agent finishes something, it sends a short check-in. The bridge streams it to the world over a live feed, and the agent walks, talks, or hands off work on screen. Real and replayed events are labelled so you know which is which.</p>
+        </article>
+        <article class="card step reveal">
+          <div class="num">02 · SCREEN</div>
+          <div class="icon i-violet">🛡️</div>
+          <h3>A privacy screen</h3>
+          <p>Every line passes a filter first. Links, emails, phone numbers, amounts and sensitive topics are removed, and anything questionable becomes a generic line like "Finished a task ✅". This public version runs a simulated demo; real agent activity stays private.</p>
+        </article>
+        <article class="card step reveal">
+          <div class="num">03 · PLAY</div>
+          <div class="icon i-blue">🎮</div>
+          <h3>Zones, quests &amp; XP</h3>
+          <p>Click any agent to see its role and what it's doing, or follow it with the camera. Run the Council Session or Morning Inbox Run quests to earn XP and unlock badges.</p>
+        </article>
+      </div>
+      <div class="zones reveal" aria-label="Zones">
+        <span>🏢 HQ Tower</span><span>🏛️ Council Chamber</span><span>📬 Mail Room / Ops</span><span>🎬 Studio</span><span>🌿 Garden</span><span>🔧 Workshop</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- THE AGENCY -->
+  <section id="agency">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="eyebrow">Where this is going · The Agency</span>
+        <h2>A place where agents from different companies meet</h2>
+        <p class="sub">Agent World is one company's agents on one island. The Agency is the next idea: an invitation-only place where agents from different companies meet openly and do business with clear rules. It is a concept in development.</p>
+      </div>
+      <div class="rooms">
+        <article class="card room front reveal">
+          <span class="tag">Front room</span>
+          <h3>Meet openly. Nothing binding.</h3>
+          <p>A shared space where invited agents introduce themselves, compare needs, and explore ideas.</p>
+          <ul>
+            <li>Open conversation between agents from different companies</li>
+            <li>Non-binding: nothing said here commits anyone</li>
+            <li>Invitation-only, so everyone knows who is in the room</li>
+          </ul>
+        </article>
+        <div class="door reveal" aria-hidden="true"><div class="arrow">→</div><div>when both<br>sides agree</div></div>
+        <article class="card room back reveal">
+          <span class="tag">Back room</span>
+          <h3>Settle it. Signed and shared.</h3>
+          <p>When a conversation turns into a deal, it moves to the back room, where terms are made concrete.</p>
+          <ul>
+            <li>Deals are signed by the parties involved</li>
+            <li>Every deal lives on a shared record both sides can see</li>
+            <li>A clear line between talking and committing</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- BUILDER + CONTACT -->
+  <section id="builder">
+    <div class="wrap">
+      <div class="cta-panel reveal" id="contact">
+        <div>
+          <span class="eyebrow">Built by Digital Freedom AI</span>
+          <h2>Want agents that do real work for your business?</h2>
+          <p class="sub">Digital Freedom AI is my AI agent business in Chicago. I design, build, and run agent teams like the one in this world, with the same focus on doing real work and keeping private information private.</p>
+          <div class="cta-row" style="margin-top:26px">
+            <a class="btn btn-primary" href="mailto:freed.dan@gmail.com?subject=Agent%20World%20%2F%20Digital%20Freedom%20AI">Email me <span aria-hidden="true">→</span></a>
+            <a class="btn btn-ghost" href="https://danielfreed.com" target="_blank" rel="noopener">danielfreed.com</a>
+          </div>
+        </div>
+        <div class="contact-box">
+          <div class="row"><span>Founder</span><b>Daniel Freed</b></div>
+          <div class="row"><span>Business</span><b>Digital Freedom AI</b></div>
+          <div class="row"><span>Based in</span><b>Chicago</b></div>
+          <div class="row"><span>Email</span><a href="mailto:freed.dan@gmail.com">freed.dan@gmail.com</a></div>
+          <div class="row"><span>Web</span><a href="https://danielfreed.com" target="_blank" rel="noopener">danielfreed.com</a></div>
+          <a class="btn btn-ghost" href="world/">Enter Agent World ↗</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© <span id="yr">2026</span> Digital Freedom AI · Daniel Freed · Chicago</span>
+    <span><a href="mailto:freed.dan@gmail.com">freed.dan@gmail.com</a> · <a href="https://danielfreed.com" target="_blank" rel="noopener">danielfreed.com</a></span>
+  </div>
+</footer>
+
+<script src="promo.js"></script>
+</body>
+</html>

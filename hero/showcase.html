@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent World – showcase</title>
+<style>
+:root{--glass:rgba(22,18,44,.62);--line:rgba(255,255,255,.12);--txt:#f3eefe;--mute:#b9b0d6;--acc:#ffc27a;--acc2:#7ef0e4}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#1b1535;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--txt)}
+#app{position:fixed;inset:0}
+#app canvas{display:block}
+#hud{position:fixed;inset:0;pointer-events:none;z-index:5}
+.glass{background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:14px;box-shadow:0 8px 30px rgba(10,5,30,.35);pointer-events:auto}
+#brand{position:absolute;top:16px;left:16px;padding:12px 16px;min-width:230px}
+#brand .title{font-size:20px;font-weight:800;letter-spacing:.3px;background:linear-gradient(90deg,#ffd9a0,#ff9fc4 55%,#9fe8ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+#brand .sub{font-size:11.5px;color:var(--mute);margin-top:3px;display:flex;align-items:center;gap:6px}
+.live{width:7px;height:7px;border-radius:50%;background:#57f2a0;box-shadow:0 0 8px #57f2a0;animation:pulse 1.6s infinite}
+@keyframes pulse{50%{opacity:.35}}
+.live.real{background:#ff4d6d;box-shadow:0 0 8px #ff4d6d}
+#mode-text.real{color:#ffb3c1;font-weight:700;letter-spacing:.6px}
+#live-pill{margin-top:7px;font-size:11px;color:#ffd6de;background:rgba(255,77,109,.14);border:1px solid rgba(255,77,109,.35);padding:4px 8px;border-radius:8px;max-width:260px}
+#feed-list .ts{opacity:.5;font-size:10.5px;margin-right:4px;font-variant-numeric:tabular-nums}
+#feed-list .tag{font-size:9.5px;padding:1px 5px;border-radius:5px;margin-right:4px;background:rgba(255,77,109,.2);color:#ffc2cf}
+#feed-list .tag.sim{background:rgba(255,255,255,.1);color:#cfc6ea}
+.p-real{font-size:11.5px;color:#ffc2cf;margin:-4px 0 12px}
+#roster-toggle{margin-top:9px;background:rgba(255,255,255,.07);border:1px solid var(--line);color:var(--txt);font:inherit;font-size:12px;padding:5px 10px;border-radius:8px;cursor:pointer}
+#roster-toggle:hover{background:rgba(255,255,255,.14)}
+#roster{margin-top:8px;max-height:52vh;overflow:auto;width:250px}
+#roster .zone{font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--mute);margin:8px 0 4px}
+#roster .chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;margin:0 4px 4px 0;padding:3px 8px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid var(--line);cursor:pointer}
+#roster .chip:hover{background:rgba(255,255,255,.16)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:none}
+#progress{position:absolute;top:16px;right:16px;padding:12px 14px;width:280px}
+.lvl-row{display:flex;align-items:center;gap:10px}
+.lvl{font-size:13px;color:var(--mute);white-space:nowrap}.lvl b{color:var(--txt);font-size:18px}
+.xpbar{flex:1;height:8px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden}
+#xpfill{height:100%;width:0;background:linear-gradient(90deg,#ffb86b,#ff7eb6);border-radius:99px;transition:width .6s cubic-bezier(.2,.8,.2,1);box-shadow:0 0 10px #ff9fb0}
+#xptext{font-size:11px;color:var(--mute);margin-top:6px}
+#badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.badge{font-size:11.5px;padding:3px 8px;border-radius:999px;background:linear-gradient(135deg,rgba(255,200,120,.22),rgba(255,120,180,.18));border:1px solid rgba(255,210,150,.35)}
+.badge.locked{opacity:.35;filter:grayscale(1);background:rgba(255,255,255,.05);border-color:var(--line)}
+#feed{position:absolute;left:16px;bottom:16px;width:330px;padding:10px 12px}
+.feed-title{font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--mute);margin-bottom:6px}
+#feed-list{list-style:none;margin:0;padding:0;font-size:12px;line-height:1.35}
+#feed-list li{padding:3px 0;border-top:1px solid rgba(255,255,255,.05);animation:fin .4s ease}
+#feed-list li:first-child{border-top:none}
+#feed-list b{font-weight:650}
+@keyframes fin{from{opacity:0;transform:translateY(4px)}}
+#quest-bar{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:10px}
+.quest-buttons{display:flex;gap:10px;pointer-events:auto}
+.qbtn{font:inherit;font-size:13.5px;font-weight:650;color:#2a1633;padding:10px 16px;border:none;border-radius:12px;cursor:pointer;background:linear-gradient(135deg,#ffd49a,#ff9cc2);box-shadow:0 6px 20px rgba(255,140,170,.35);transition:transform .15s,filter .15s}
+.qbtn:hover{transform:translateY(-2px);filter:brightness(1.06)}
+.qbtn:disabled{filter:grayscale(.8) brightness(.7);cursor:default;transform:none}
+#quest-tracker{padding:10px 14px;width:380px;text-align:left}
+#quest-tracker .qt-title{font-size:13px;font-weight:700}
+#quest-tracker .qt-step{font-size:12px;color:var(--mute);margin-top:3px;min-height:16px}
+.qt-bar{height:5px;border-radius:9px;background:rgba(255,255,255,.1);margin-top:8px;overflow:hidden}
+#qt-fill{height:100%;width:0;background:linear-gradient(90deg,var(--acc2),#9fa8ff);transition:width .5s}
+#hint{position:absolute;right:16px;bottom:16px;font-size:11.5px;color:rgba(255,255,255,.6);text-shadow:0 1px 3px rgba(0,0,0,.4)}
+#panel{position:absolute;top:130px;right:16px;width:300px;padding:16px;transform:translateX(340px);opacity:0;transition:transform .35s cubic-bezier(.2,.8,.2,1),opacity .35s}
+#panel.open{transform:none;opacity:1}
+#panel .close{position:absolute;top:8px;right:10px;background:none;border:none;color:var(--mute);font-size:20px;cursor:pointer}
+.p-head{display:flex;align-items:center;gap:12px}
+.p-avatar{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-size:22px;box-shadow:inset 0 -6px 12px rgba(0,0,0,.2)}
+.p-name{font-size:17px;font-weight:750}
+.p-zone{font-size:11.5px;color:var(--mute);margin-top:2px}
+.p-role{font-size:12.5px;line-height:1.45;color:#e3dcf5;margin:12px 0}
+.p-label{font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--mute)}
+.p-act{font-size:12.5px;margin:4px 0 10px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.06);min-height:34px}
+.p-stats{font-size:11.5px;color:var(--mute);margin-bottom:12px}
+#follow-btn{width:100%;font:inherit;font-weight:650;font-size:13px;padding:9px;border-radius:10px;border:1px solid rgba(126,240,228,.5);background:rgba(126,240,228,.12);color:var(--acc2);cursor:pointer}
+#follow-btn.on{background:var(--acc2);color:#10263a}
+#toast{position:absolute;top:90px;left:50%;transform:translate(-50%,-20px);opacity:0;transition:all .45s cubic-bezier(.2,.8,.2,1);padding:14px 20px;display:flex;align-items:center;gap:14px;pointer-events:none}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+#toast .t-emoji{font-size:34px;filter:drop-shadow(0 0 10px rgba(255,200,120,.7))}
+#toast .t-title{font-weight:800;font-size:15px}
+#toast .t-sub{font-size:12.5px;color:var(--acc);margin-top:2px}
+#loading{position:fixed;inset:0;display:grid;place-items:center;background:#1b1535;color:var(--mute);font-size:14px;z-index:20;transition:opacity .6s}
+/* in-world labels */
+.label{font-size:11px;font-weight:650;color:#fff;padding:2px 7px 2px 6px;border-radius:999px;background:rgba(20,14,40,.62);border:1px solid rgba(255,255,255,.14);display:flex;align-items:center;gap:5px;white-space:nowrap;cursor:pointer;pointer-events:auto;user-select:none;transition:background .2s}
+.label:hover,.label.sel{background:rgba(255,255,255,.92);color:#21163a}
+.zlabel{font-size:12.5px;font-weight:750;letter-spacing:.3px;color:#fff;padding:4px 11px;border-radius:10px;background:linear-gradient(135deg,rgba(255,170,120,.35),rgba(160,120,255,.35));border:1px solid rgba(255,255,255,.28);white-space:nowrap;text-shadow:0 1px 4px rgba(0,0,0,.4);pointer-events:none}
+.bubble{pointer-events:none;max-width:190px;font-size:11.5px;line-height:1.35;color:#221a38;background:#fffaf3;padding:6px 9px;border-radius:11px;border-left:4px solid #999;box-shadow:0 6px 18px rgba(20,10,40,.35);opacity:0;transform:translateY(-14px) scale(.85);transition:opacity .25s,transform .25s cubic-bezier(.2,.9,.3,1.4);position:relative;margin-bottom:10px}
+.bubble.show{opacity:1;transform:translateY(-22px) scale(1)}
+.bubble.thought{font-style:italic;background:#f1ecff}
+.bubble:after{content:"";position:absolute;left:50%;bottom:-6px;margin-left:-6px;border:6px solid transparent;border-bottom:0;border-top-color:#fffaf3}
+.bubble.thought:after{border-top-color:#f1ecff}
+@media (max-width:760px){#feed{display:none}#progress{width:200px}#hint{display:none}}
+/* promo showcase: world only, no HUD */
+#hud{display:none!important}
+html,body{background:#150f2e}
+.label{pointer-events:none}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="hud">
+  <div id="brand" class="glass">
+    <div class="title">Agent World</div>
+    <div class="sub"><span class="live" id="mode-dot"></span><span id="mode-text">Simulated live collaboration</span><span id="fps"></span></div>
+    <div id="live-pill" hidden></div>
+    <button id="roster-toggle">Agents ▾</button>
+    <div id="roster" hidden></div>
+  </div>
+  <div id="progress" class="glass">
+    <div class="lvl-row"><div class="lvl">Lv <b id="lvl">1</b></div><div class="xpbar"><div id="xpfill"></div></div></div>
+    <div id="xptext">0 / 100 XP</div>
+    <div id="badges"></div>
+  </div>
+  <div id="feed" class="glass"><div class="feed-title" id="feed-title">Live activity (simulated)</div><ul id="feed-list"></ul></div>
+  <div id="quest-bar">
+    <div id="quest-tracker" class="glass" hidden>
+      <div class="qt-title" id="qt-title"></div>
+      <div class="qt-step" id="qt-step"></div>
+      <div class="qt-bar"><div id="qt-fill"></div></div>
+    </div>
+    <div class="quest-buttons">
+      <button class="qbtn" data-quest="council">🏛️ Council Session</button>
+      <button class="qbtn" data-quest="inbox">✉️ Morning Inbox Run</button>
+    </div>
+  </div>
+  <div id="hint">Drag to orbit · Right-drag to pan · Scroll to zoom · Click an agent</div>
+  <aside id="panel" class="glass">
+    <button class="close" id="panel-close" title="Close (Esc)">×</button>
+    <div class="p-head"><div class="p-avatar" id="p-avatar"></div><div><div class="p-name" id="p-name"></div><div class="p-zone" id="p-zone"></div></div></div>
+    <div class="p-role" id="p-role"></div>
+    <div class="p-label" id="p-act-label">Current activity</div>
+    <div class="p-act" id="p-act"></div>
+    <div class="p-stats" id="p-stats"></div>
+    <div class="p-real" id="p-real"></div>
+    <button id="follow-btn">🎥 Follow</button>
+  </aside>
+  <div id="toast" class="glass"></div>
+</div>
+<div id="loading">Loading Agent World…</div>
+<script src="showcase.js"></script>
+</body>
+</html>
