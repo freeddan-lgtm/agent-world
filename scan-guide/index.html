@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#000000">
+<title>Scan Guide</title>
+<style>
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;background:#000;color:#fff;font-family:-apple-system,system-ui,sans-serif}
+  body{display:flex;flex-direction:column;height:100dvh;padding:env(safe-area-inset-top) 10px calc(env(safe-area-inset-bottom) + 10px)}
+  button{font:inherit;border:0;border-radius:22px;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+  button:active{filter:brightness(1.3);transform:scale(.98)}
+  #top{padding:10px 4px 6px}
+  #num{font-size:30px;font-weight:800;color:#ffd400}
+  #title{font-size:24px;font-weight:700;margin-top:2px}
+  #text{font-size:19px;line-height:1.35;margin-top:6px;color:#eee;max-height:28vh;overflow:auto}
+  #next{flex:1;margin-top:10px;background:#ffd400;color:#000;font-size:64px;font-weight:900;min-height:200px}
+  #row{display:flex;gap:10px;margin-top:10px}
+  #row button{flex:1;height:96px;font-size:30px;font-weight:800}
+  #back{background:#333;color:#fff;border:3px solid #888 !important}
+  #repeat{background:#0a4bd6;color:#fff}
+  #note{font-size:15px;color:#bbb;text-align:center;margin-top:8px}
+  #note a{color:#bbb}
+  #start{position:fixed;inset:0;z-index:10;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center}
+  #startbtn{width:100%;flex:1;max-height:65vh;background:#00c853;color:#000;font-size:56px;font-weight:900}
+  #start p{font-size:20px;line-height:1.4;margin:16px 0}
+  #warn{display:none;font-size:18px;color:#ff8a80;margin-top:8px}
+</style>
+</head>
+<body>
+<div id="start">
+  <p style="font-size:26px;font-weight:800;color:#ffd400">Scan guide</p>
+  <button id="startbtn" type="button">Tap to start 🔊</button>
+  <p>You should hear a voice.<br>No sound? Flip the silent switch off (no orange showing) and turn the volume up.</p>
+  <p id="warn">This browser has no speech. Read the text on screen instead.</p>
+</div>
+
+<div id="top">
+  <div id="num">Step 1 of 1</div>
+  <div id="title"></div>
+  <div id="text"></div>
+</div>
+<button id="next" type="button">NEXT ▶</button>
+<div id="row">
+  <button id="back" type="button">◀ Back</button>
+  <button id="repeat" type="button">↻ Repeat</button>
+</div>
+<div id="note">No sound? Check the silent switch and volume. · <a href="#" id="restart">Start over</a></div>
+
+<script>
+(function () {
+  'use strict';
+  var END = ' Tap scan in Matterport, then stand still out of view while it turns. When it says done, tap Next.';
+  var STEPS = [
+    ['Get ready', 'Before you start. Turn on all the lights and open every door. Put a chair in the dining room and one in the hall. Set the tripod to chest height, so you do not bend. Open Matterport and start a new scan. Carry the tripod close to your body, and check the floor for rugs and cords each time you move. Tap Next when ready.'],
+    ['Entry door', 'Front door. Open the front door. Set the tripod just inside the doorway, in the middle.' + END],
+    ['Foyer', 'Foyer. Move into the entry hall, about six feet in, where the coat closet door is in view. If the electrical panel or thermostat is here, face toward it.' + END],
+    ['Living room: window wall', 'Living room. Walk into the living room. Set the tripod about six feet from the lake windows, in the middle of that wall.' + END],
+    ['Living room: center', 'Move to the middle of the living room, about six to eight feet from the last spot.' + END],
+    ['Living room: far corner', 'Move toward the far corner of the living room, about six feet out from the corner.' + END],
+    ['Living room: radiator and windows', 'Extra spot. Set the tripod about four feet from the radiator or wall A C unit, near a window, so the contractors can see it clearly.' + END],
+    ['Dining: first spot', 'Dining area. Move into the dining area, about six feet from the last spot. Keep the living room in view.' + END],
+    ['Dining: second spot', 'Move to the other end of the dining area, about six feet over.' + END],
+    ['Kitchen doorway', 'Kitchen doorway. Set the tripod in the middle of the kitchen doorway. If the kitchen is fully open, skip this and tap Next.' + END],
+    ['Kitchen: first end', 'Kitchen. Move to the first end of the kitchen, in the middle of the floor.' + END],
+    ['Kitchen: sink', 'Extra spot. Set the tripod about three or four feet in front of the sink and its cabinets.' + END],
+    ['Kitchen: stove and fridge', 'Extra spot. Set the tripod about three or four feet in front of the stove and fridge wall.' + END],
+    ['Kitchen: far end', 'Move to the other end of the kitchen, so you can still see the last spot.' + END],
+    ['Rest. Sit down', 'Rest time. Leave the tripod where it is. Sit in the chair in the dining room. Drink some water. Take as long as you need. You can also pause and finish another day. When you are ready, stand up slowly, then tap Next.'],
+    ['Hallway: first spot', 'Hallway. Set the tripod at the start of the hallway, by the first bedroom door. Keep the last spot in view.' + END],
+    ['Hallway: utility spots', 'Move about five or six feet down the hall. If the electrical panel, thermostat, laundry, or water heater closet is here, open it and face the tripod toward it, about three feet away.' + END],
+    ['Bedroom 3 doorway', 'Bedroom 3. Set the tripod in the middle of the bedroom 3 doorway.' + END],
+    ['Bedroom 3: inside', 'Move into bedroom 3, about six feet in, in the middle of the room.' + END],
+    ['Bedroom 3: window side', 'Move near the window and radiator in bedroom 3, about four feet away from them. If there is a walk-in closet, scan once inside it too.' + END],
+    ['Bath 3', 'Bathroom 3. Set the tripod in the bathroom doorway, in the middle. If there is room, do one more scan inside, near the vanity. Then tap Next.' + END],
+    ['Bedroom 2 doorway', 'Bedroom 2. Go back to the hall. If you cannot see your last spot, do one hall scan first. Then set the tripod in the middle of the bedroom 2 doorway.' + END],
+    ['Bedroom 2: inside', 'Move into bedroom 2, about six feet in, in the middle of the room.' + END],
+    ['Bedroom 2: window side', 'Move near the window and radiator in bedroom 2, about four feet away. If there is a walk-in closet, scan once inside it too.' + END],
+    ['Bath 2', 'Bathroom 2. Set the tripod in the bathroom doorway. If there is room, do one more scan inside, near the vanity.' + END],
+    ['Rest. Sit down', 'Rest time. Sit in the chair in the hall or bedroom 2. Breathe and drink some water. Only one room left. When you are ready, stand up slowly, then tap Next.'],
+    ['Primary bedroom doorway', 'Primary bedroom. Go back to the hall. If you cannot see your last spot, do one hall scan first. Then set the tripod in the middle of the primary bedroom doorway.' + END],
+    ['Primary bedroom: near side', 'Move into the primary bedroom, about six feet in.' + END],
+    ['Primary bedroom: center', 'Move to the middle of the primary bedroom, about six to eight feet from the last spot.' + END],
+    ['Primary bedroom: windows', 'Move near the windows and radiator, about four feet away from them.' + END],
+    ['Primary closet', 'Primary closet. If there is a walk-in closet, set the tripod just inside it. If it is a reach-in closet, skip this and tap Next.' + END],
+    ['Primary bath doorway', 'Primary bath. Set the tripod in the middle of the primary bathroom doorway.' + END],
+    ['Primary bath: inside', 'Move inside the primary bath, so you can see the vanity, the tub or shower, and the toilet wall.' + END],
+    ['All done', 'You are done. Great job. Sit down and rest. In Matterport, finish and upload the scan. Later, take phone photos of the electrical panel labels, the appliance model plates, and the water shutoff valves. Set the tour to Unlisted, not Public, before you share it with contractors. If a scan ever fails to line up, move two feet back toward the last spot and try again.']
+  ];
+  var KEY = 'scanguide_step_v1';
+  var hasSpeech = 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined';
+  var synth = hasSpeech ? window.speechSynthesis : null;
+  var voice = null;
+  var current = null; // keep a reference so the utterance is not garbage-collected mid-speech
+  var i = 0;
+  try { i = parseInt(localStorage.getItem(KEY), 10) || 0; } catch (e) {}
+  if (i < 0 || i >= STEPS.length) i = 0;
+
+  function pickVoice() {
+    if (!hasSpeech) return;
+    try {
+      var vs = synth.getVoices() || [];
+      var best = null;
+      for (var k = 0; k < vs.length; k++) {
+        var v = vs[k];
+        if (v.lang && v.lang.replace('_', '-').indexOf('en-US') === 0) {
+          if (!best || /samantha|enhanced|premium/i.test(v.name)) best = v;
+        }
+      }
+      if (best) voice = best;
+    } catch (e) {}
+  }
+  if (hasSpeech) {
+    pickVoice(); // voices may load late on iOS; never block on this
+    if ('onvoiceschanged' in synth) synth.onvoiceschanged = pickVoice;
+  }
+
+  // Must be called synchronously from inside a tap handler (iOS Safari requirement).
+  function say(text) {
+    if (!hasSpeech) return;
+    try {
+      synth.cancel();
+      var u = new SpeechSynthesisUtterance(text);
+      u.lang = 'en-US';
+      u.rate = 0.95;
+      u.pitch = 1;
+      u.volume = 1;
+      if (voice) u.voice = voice;
+      current = u;
+      synth.speak(u);
+      if (synth.paused) synth.resume();
+    } catch (e) {}
+  }
+
+  var $ = function (id) { return document.getElementById(id); };
+  function render() {
+    var s = STEPS[i];
+    $('num').textContent = 'Step ' + (i + 1) + ' of ' + STEPS.length;
+    $('title').textContent = s[0];
+    $('text').textContent = s[1];
+    $('next').textContent = i === STEPS.length - 1 ? 'DONE ✓' : 'NEXT ▶';
+    $('back').disabled = i === 0;
+    $('back').style.opacity = i === 0 ? '0.4' : '1';
+    try { localStorage.setItem(KEY, String(i)); } catch (e) {}
+  }
+  function spoken(idx) { return 'Step ' + (idx + 1) + '. ' + STEPS[idx][1]; }
+
+  var wakeLock = null;
+  function keepAwake() {
+    try {
+      if (navigator.wakeLock && navigator.wakeLock.request) {
+        navigator.wakeLock.request('screen').then(function (l) { wakeLock = l; }, function () {});
+      }
+    } catch (e) {}
+  }
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible' && wakeLock) keepAwake();
+  });
+
+  $('startbtn').addEventListener('click', function () {
+    // Unlock audio: speak directly in the tap, no await/timeout before it.
+    var resume = i > 0 ? 'Welcome back. ' : '';
+    say(resume + 'Sound is on. ' + spoken(i));
+    $('start').style.display = 'none';
+    keepAwake();
+  });
+  $('next').addEventListener('click', function () {
+    if (i < STEPS.length - 1) i++;
+    say(spoken(i));
+    render();
+  });
+  $('repeat').addEventListener('click', function () {
+    say(spoken(i));
+  });
+  $('back').addEventListener('click', function () {
+    if (i > 0) i--;
+    say('Going back. ' + spoken(i));
+    render();
+  });
+  $('restart').addEventListener('click', function (ev) {
+    ev.preventDefault();
+    if (!window.confirm('Start over from step 1?')) return;
+    i = 0;
+    say(spoken(i));
+    render();
+  });
+
+  if (!hasSpeech) $('warn').style.display = 'block';
+  if (i > 0) $('startbtn').textContent = 'Tap to continue at step ' + (i + 1) + ' 🔊';
+  render();
+})();
+</script>
+</body>
+</html>
