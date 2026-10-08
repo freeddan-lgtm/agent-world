@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex,nofollow">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#1a0b3d">
-<meta http-equiv="refresh" content="2;url=https://butterfly-resume-convinced-appreciation.trycloudflare.com/">
+<noscript><meta http-equiv="refresh" content="0;url=https://constitute-climate-rank-frequent.trycloudflare.com/"></noscript>
 <title>Opening Agent World…</title>
 <style>
   html,body{height:100%;margin:0}
@@ -16,27 +16,108 @@
   .dot{width:14px;height:14px;border-radius:50%;background:#a855f7;box-shadow:0 0 24px #a855f7;animation:p 1.1s ease-in-out infinite}
   @keyframes p{50%{transform:scale(.6);opacity:.5}}
   a{color:#c4b5fd;font-weight:500;font-size:16px}
-  small{color:#8e87b5;font-weight:400;font-size:13px}
+  small{color:#8e87b5;font-weight:400;font-size:13px;max-width:340px}
+  button{display:none;padding:10px 18px;border:0;border-radius:10px;background:#a855f7;color:#fff;font:600 16px system-ui,sans-serif}
 </style>
 </head>
 <body>
 <div class="dot"></div>
-<div>Opening Agent World…</div>
-<a id="go" href="https://butterfly-resume-convinced-appreciation.trycloudflare.com/">Tap here if it doesn't open</a>
-<small>You'll be asked to log in.</small>
+<div id="msg">Opening Agent World…</div>
+<button id="again" type="button">Try again</button>
+<a id="go" href="https://constitute-climate-rank-frequent.trycloudflare.com/">Tap here if it doesn't open</a>
+<small id="sub">No sign-in needed.</small>
 <script>
 (function () {
-  var url = "https://butterfly-resume-convinced-appreciation.trycloudflare.com/";
-  var done = false;
-  function go(u) { if (done) return; done = true; document.getElementById("go").href = u; location.replace(u); }
-  var ok = /^https:\/\/[a-z0-9][a-z0-9-]*\.(trycloudflare\.com|lhr\.life)\/$/;
-  setTimeout(function () { go(url); }, 1200);
-  try {
-    fetch("target.json?ts=" + Date.now(), { cache: "no-store" })
+  "use strict";
+  var BAKED = "https://constitute-climate-rank-frequent.trycloudflare.com/";
+  var CHANNEL = "https://ntfy.sh/agentworld-go-532fa4b89ce582c383b36ea7ae8767dd/json?poll=1&since=all";
+  var PUBKEY = "BCYsL4MDDTkIhIRnyuhU2CRLSJT7tuqztuM1ug9JuiHVY3H+4UL122d+J7kjLIp3wz//Q5wVzY2Iox252tMveJw=";
+  var VALID = /^https:\/\/[a-z0-9-]+\.trycloudflare\.com\/$/;
+  var msg = document.getElementById("msg"), sub = document.getElementById("sub");
+  var link = document.getElementById("go"), again = document.getElementById("again");
+  var started = Date.now(), done = false, best = VALID.test(BAKED) ? BAKED : null, timer = null;
+
+  function go(u) {
+    if (done || !VALID.test(u)) return;
+    done = true; link.href = u; location.replace(u);
+  }
+  function withTimeout(p, ms) {
+    return Promise.race([p, new Promise(function (_, rej) { setTimeout(function () { rej(new Error("timeout")); }, ms); })]);
+  }
+  function b64(s) {
+    var bin = atob(s), out = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+  var keyP = null;
+  function key() {
+    if (!keyP) keyP = crypto.subtle.importKey("raw", b64(PUBKEY), { name: "ECDSA", namedCurve: "P-256" }, false, ["verify"]);
+    return keyP;
+  }
+  function checkSig(m) {
+    if (!m || !VALID.test(m.u) || typeof m.t !== "number" || typeof m.s !== "string") return Promise.resolve(false);
+    return key().then(function (k) {
+      return crypto.subtle.verify({ name: "ECDSA", hash: "SHA-256" }, k, b64(m.s), new TextEncoder().encode(m.u + "|" + m.t));
+    }).catch(function () { return false; });
+  }
+  // 1) newest correctly signed URL published by the box to the public ntfy.sh channel
+  function fromChannel() {
+    if (!(window.crypto && crypto.subtle && window.TextEncoder)) return Promise.resolve(null);
+    return withTimeout(fetch(CHANNEL + "&ts=" + Date.now(), { cache: "no-store" }), 7000)
+      .then(function (r) { return r.ok ? r.text() : ""; })
+      .then(function (txt) {
+        var msgs = [];
+        txt.split("\n").forEach(function (line) {
+          try { var e = JSON.parse(line); if (e.event === "message") msgs.push(JSON.parse(e.message)); } catch (x) {}
+        });
+        return Promise.all(msgs.map(checkSig)).then(function (oks) {
+          var top = null;
+          msgs.forEach(function (m, i) { if (oks[i] && (!top || m.t > top.t)) top = m; });
+          return top ? top.u : null;
+        });
+      }).catch(function () { return null; });
+  }
+  // 2) target.json in this repo (updated by the box routine), 3) the URL baked into this page
+  function fromTarget() {
+    return withTimeout(fetch("target.json?ts=" + Date.now(), { cache: "no-store" }), 7000)
       .then(function (r) { return r.json(); })
-      .then(function (j) { go(j && ok.test(j.url) ? j.url : url); })
-      .catch(function () { go(url); });
-  } catch (e) { go(url); }
+      .then(function (j) { return j && VALID.test(j.url) ? j.url : null; })
+      .catch(function () { return null; });
+  }
+  function isAlive(u) {
+    return withTimeout(fetch(u + "__alive?ts=" + Date.now(), { cache: "no-store", mode: "cors", referrerPolicy: "no-referrer" }), 8000)
+      .then(function (r) { return r.ok ? r.text() : ""; })
+      .then(function (t) { return t.indexOf("agent-world-ok") === 0; })
+      .catch(function () { return false; });
+  }
+  function attempt() {
+    if (done) return;
+    Promise.all([fromChannel(), fromTarget()]).then(function (c) {
+      var list = [];
+      [c[0], c[1], BAKED].forEach(function (u) { if (u && VALID.test(u) && list.indexOf(u) < 0) list.push(u); });
+      if (list.length) { best = list[0]; link.href = best; }
+      return Promise.all(list.map(isAlive)).then(function (oks) {
+        for (var i = 0; i < list.length; i++) if (oks[i]) return go(list[i]);
+        waiting();
+      });
+    }).catch(waiting);
+  }
+  function waiting() {
+    if (done) return;
+    var s = (Date.now() - started) / 1000;
+    if (s < 60) {
+      msg.textContent = "Agent World is waking up…";
+      sub.textContent = "The link restarts now and then. Hang on, this usually takes under a minute. No sign-in needed.";
+      timer = setTimeout(attempt, 4000);
+    } else {
+      msg.textContent = "Agent World is still waking up…";
+      sub.textContent = "It's taking longer than usual. This page keeps checking every 15 seconds, or tap Try again.";
+      again.style.display = "inline-block";
+      if (s < 900) timer = setTimeout(attempt, 15000);
+    }
+  }
+  again.onclick = function () { clearTimeout(timer); started = Date.now(); again.style.display = "none"; msg.textContent = "Checking…"; attempt(); };
+  attempt();
 })();
 </script>
 </body>
