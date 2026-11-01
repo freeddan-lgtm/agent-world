@@ -430,27 +430,12 @@ startPreviewTestFeed();
 
 // ---------- boot ----------
 window.AgentWorld = Object.assign(window.AgentWorld || {}, { THREE, world, sim, audio, ui, rulebook: rules, packs: [], version: '2.0.0', showBuddies: () => sb, startMusicFromGesture });
-// Expansion packs (Rule V2): listed in window.AW_CONFIG.packs; the base world runs unchanged without them.
-// v2: packs load before the first Show Buddies read, so a pack can seat fans by section (Moon Palace).
-for (const p of CFG.packs || []) {
-  try { const m = await import(new URL(p.adapter, document.baseURI).href); window.AgentWorld.packs.push(await m.default(window.AgentWorld, new URL(p.base, document.baseURI).href)); }
-  catch (e) { console.warn('pack failed', p, e); ui.toast('⚠️', 'An expansion pack failed to load', String(e.message || e)); }
-}
-try { window.AgentWorld.keystone = await installKeystone(window.AgentWorld, CFG); }
-catch (e) { console.warn('keystone failed', e); ui.toast('⚠️', 'Keystone Claude failed to load', String(e.message || e)); }
+// Preview: bridge is null and Show Buddies is a local sample. Do NOT await packs/keystone/optimize
+// before clearing #loading — those used to leave "Waking up Agent World…" up for many seconds
+// (serial pack downloads; previously also a dead bridge/feed wait that felt like ~45s).
 await refreshShows();
 setInterval(() => { if (!document.hidden && !CFG.vtest) refreshShows(); }, 60000);
-// Fast first paint: hide loading before the slow static-batch observe on weak/phone devices
 $('#loading')?.classList.add('gone'); setTimeout(() => $('#loading')?.remove(), 600);
-const runOpt = async () => { if (world.opt.has('casters') || world.opt.has('batch')) { try { await optimizeWorld(world, world.opt); } catch (e) { console.warn('optimize failed', e); } } };
-if (world.weakDevice || matchMedia('(pointer:coarse)').matches) {
-  const heavy = world.opt.has('batch');
-  if (heavy) world.opt.delete('batch');
-  await runOpt();
-  if (heavy) { world.opt.add('batch'); setTimeout(() => { runOpt().catch(() => {}); }, 2500); }
-} else {
-  await runOpt();
-}
 ui.feed('🌆 Welcome to <b>Agent World · Claude Edition</b> (v2.0, Keystone build). Agent activity is a labelled simulation.', 'sim');
 if (location.hash.startsWith('#rule-')) rules.open(location.hash.slice(6));
 else if (!CFG.vtest) {
@@ -464,3 +449,33 @@ else if (!CFG.vtest) {
   }, 900);
 }
 window.AgentWorld.ready = true;
+
+// Expansion packs + Keystone + render opts: background only (Rule V2). Base world already interactive.
+const runOpt = async () => { if (world.opt.has('casters') || world.opt.has('batch')) { try { await optimizeWorld(world, world.opt); } catch (e) { console.warn('optimize failed', e); } } };
+(async () => {
+  // Prefetch pack modules in parallel, then install in listed order (shared scene mutations).
+  const packSpecs = CFG.packs || [];
+  const mods = await Promise.all(packSpecs.map(async p => {
+    try { return { p, m: await import(new URL(p.adapter, document.baseURI).href) }; }
+    catch (e) { console.warn('pack import failed', p, e); ui.toast('⚠️', 'An expansion pack failed to load', String(e.message || e)); return null; }
+  }));
+  for (const row of mods) {
+    if (!row) continue;
+    try { window.AgentWorld.packs.push(await row.m.default(window.AgentWorld, new URL(row.p.base, document.baseURI).href)); }
+    catch (e) { console.warn('pack failed', row.p, e); ui.toast('⚠️', 'An expansion pack failed to load', String(e.message || e)); }
+  }
+  try { window.AgentWorld.keystone = await installKeystone(window.AgentWorld, CFG); }
+  catch (e) { console.warn('keystone failed', e); ui.toast('⚠️', 'Keystone Claude failed to load', String(e.message || e)); }
+  // Re-seat fans now that Moon Palace fanPlacers exist
+  try { await refreshShows(); } catch (e) { console.warn('refreshShows after packs', e); }
+  try {
+    if (world.weakDevice || matchMedia('(pointer:coarse)').matches) {
+      const heavy = world.opt.has('batch');
+      if (heavy) world.opt.delete('batch');
+      await runOpt();
+      if (heavy) { world.opt.add('batch'); setTimeout(() => { runOpt().catch(() => {}); }, 2500); }
+    } else {
+      await runOpt();
+    }
+  } catch (e) { console.warn('optimize boot', e); }
+})().catch(e => console.warn('background pack/keystone boot', e));
