@@ -192,7 +192,7 @@ $('#b-tod').onclick = () => { const i = (TOD.findIndex(x => x[0] === world.tod) 
 const QS = ['high', 'medium', 'lite'];
 $('#b-q').onclick = () => world.setQuality(QS[(QS.indexOf(world.qName) + 1) % 3]);
 $('#b-sim').onclick = () => { ui.simOn = !ui.simOn; $('#b-sim').textContent = ui.simOn ? '⏸ Pause sim' : '▶ Resume sim'; $('#simtxt').textContent = ui.simOn ? 'Simulated live collaboration' : 'Simulation paused'; };
-// ---------- background music (HTML5 audio, user-gesture start, no autoplay) ----------
+// ---------- background music (HTML5 <audio>, iOS Safari–safe user-gesture start) ----------
 const bg = $('#bg-music');
 const LS_MUTE = 'aw-ce2-music-muted';
 const LS_VOL = 'aw-ce2-music-vol';
@@ -223,7 +223,7 @@ function syncMusicUI() {
     if (!musicWanted) now.textContent = 'Music off · Phish 1998-07-01 · Tweezer (~23 min audience tape)';
     else if (muted) now.textContent = 'Muted · Phish 1998-07-01 · Tweezer';
     else if (playing) {
-      const list = (typeof musicSrcList === 'function' ? musicSrcList() : []);
+      const list = musicSrcList();
       const partOff = (list.length > 1 ? musicPart * (musicDurTotal / list.length) : 0);
       const t = partOff + (bg.currentTime || 0);
       const dur = list.length > 1 ? musicDurTotal : (bg.duration || musicDurTotal);
@@ -233,97 +233,142 @@ function syncMusicUI() {
   }
 }
 function fmtTime(s) { if (!Number.isFinite(s) || s < 0) return '–'; const m = Math.floor(s / 60), sec = Math.floor(s % 60); return m + ':' + String(sec).padStart(2, '0'); }
-// Full Tweezer (~23 min) as same-origin parts (96k) chained; single-file URL also supported.
+// Preview host: jsDelivr parts (relative music/*.mp3 404 on agent-world Pages). Never fall back to a missing relative file.
 const MUSIC_PARTS = [
   'https://cdn.jsdelivr.net/gh/freeddan-lgtm/agent-world-mobile-preview@main/music/ph98-07-01d201-p1.mp3',
   'https://cdn.jsdelivr.net/gh/freeddan-lgtm/agent-world-mobile-preview@main/music/ph98-07-01d201-p2.mp3',
   'https://cdn.jsdelivr.net/gh/freeddan-lgtm/agent-world-mobile-preview@main/music/ph98-07-01d201-p3.mp3',
   'https://cdn.jsdelivr.net/gh/freeddan-lgtm/agent-world-mobile-preview@main/music/ph98-07-01d201-p4.mp3',
 ];
-const MUSIC_FALLBACK = 'music/ph98-07-01d201.mp3'; // shorter/single if parts missing
-const MUSIC_EXTERNAL = null; // set to https URL on a host we control if same-origin parts unavailable
 let musicPart = 0;
 let musicDurTotal = 23 * 60 + 17; // ~23:17 audience tape
-function musicSrcList() {
-  if (MUSIC_EXTERNAL) return [MUSIC_EXTERNAL];
-  return MUSIC_PARTS;
-}
-function loadMusicPart(i) {
+let musicUnlocked = false; // true after a gesture-tied play() succeeds
+function musicSrcList() { return MUSIC_PARTS; }
+/** Set src on the single <audio> element. Avoid load() before gesture play — it breaks iOS unlock. */
+function setMusicPart(i, { load = false } = {}) {
   const list = musicSrcList();
   musicPart = ((i % list.length) + list.length) % list.length;
   const url = list[musicPart];
-  if (bg && bg.getAttribute('src') !== url) { bg.src = url; bg.load(); }
+  if (!bg) return url;
+  const cur = bg.getAttribute('src') || '';
+  if (cur !== url) {
+    bg.setAttribute('src', url);
+    bg.src = url;
+    if (load) { try { bg.load(); } catch {} }
+  }
+  return url;
 }
-async function startMusic() {
+/** Kick Web Audio in the same user gesture (band synth). Prefer <audio> for the track (silent switch). */
+function resumeAudioContextSync() {
+  try {
+    if (!audio.ctx && typeof audio.build === 'function') audio.build();
+    if (audio.ctx && audio.ctx.state !== 'running') audio.ctx.resume(); // do not await
+  } catch {}
+}
+/**
+ * iOS Safari: play() must be called synchronously inside the tap handler.
+ * No await / fetch / setTimeout before play(). Reuse ONE element; swap src on ended.
+ */
+function startMusicFromGesture() {
   if (!bg) return;
   musicWanted = true;
   try { localStorage.setItem(LS_WANT, '1'); } catch {}
-  bg.loop = musicSrcList().length === 1; // multi-part: advance on ended
+  bg.loop = false; // multi-part playlist via ended
   bg.muted = readMute();
   bg.volume = readVol();
-  loadMusicPart(musicPart || 0);
+  try { bg.setAttribute('playsinline', ''); bg.playsInline = true; } catch {}
+  // Ensure part 1 (or current) is already the src — do not call load() here
+  setMusicPart(musicPart || 0, { load: false });
+  resumeAudioContextSync();
+  let playResult;
   try {
-    await bg.play();
+    playResult = bg.play(); // SYNC call inside tap — critical for iOS
   } catch (e) {
-    // try single-file fallback
-    try {
-      bg.src = MUSIC_FALLBACK; bg.loop = true; bg.load(); await bg.play();
-    } catch (e2) {
-      ui.toast('⚠️', 'Could not start music', String(e2.message || e2));
-      musicWanted = false;
-    }
+    console.warn('music play() threw', e);
+    musicWanted = false;
+    syncMusicUI();
+    ui.toast('⚠️', 'Could not start music', String(e.message || e));
+    return;
   }
-  try { await audio.enable(); loadLicensed(); } catch {}
-  audio.setVolume(readVol());
-  syncMusicUI();
-  if (!readMute() && musicWanted) ui.toast('🎵', 'Music on', 'Phish 1998-07-01 · Tweezer (~23 min, loops)');
+  // Handle the promise AFTER the sync play() call (does not break gesture unlock)
+  Promise.resolve(playResult).then(() => {
+    musicUnlocked = true;
+    try { audio.enable(); loadLicensed(); } catch {}
+    try { audio.setVolume(readVol()); } catch {}
+    syncMusicUI();
+    if (!readMute()) ui.toast('🎵', 'Music on', 'Phish 1998-07-01 · Tweezer (~23 min)');
+  }).catch((e) => {
+    console.warn('music play() rejected', e);
+    musicWanted = false;
+    musicUnlocked = false;
+    syncMusicUI();
+    ui.toast('⚠️', 'Could not start music', String(e?.message || e));
+  });
 }
 function pauseMusic() {
   musicWanted = false;
   try { bg?.pause(); } catch {}
-  audio.disable();
+  try { audio.disable(); } catch {}
   syncMusicUI();
 }
 function setMuted(m) {
   writeMute(m);
   if (bg) bg.muted = m;
-  if (m) audio.setVolume(0); else audio.setVolume(readVol());
+  try { if (m) audio.setVolume(0); else audio.setVolume(readVol()); } catch {}
   syncMusicUI();
 }
-// restore volume (never autoplay)
+function advanceMusicPart() {
+  if (!bg || !musicWanted) return;
+  const list = musicSrcList();
+  if (list.length <= 1) { syncMusicUI(); return; }
+  // Same element: swap src then play (iOS keeps unlock on this element)
+  setMusicPart(musicPart + 1, { load: false });
+  try {
+    const p = bg.play();
+    Promise.resolve(p).then(syncMusicUI).catch((e) => console.warn('music part advance', e));
+  } catch (e) { console.warn('music part advance', e); }
+}
+// restore volume (never autoplay); pin jsDelivr p1 as src up front
 if (bg) {
   bg.volume = readVol();
   bg.muted = readMute();
+  try { bg.setAttribute('playsinline', ''); bg.playsInline = true; } catch {}
+  setMusicPart(0, { load: false });
   $('#a-vol').value = String(bg.volume);
   bg.addEventListener('timeupdate', () => { if (musicWanted && !bg.paused && !bg.muted) syncMusicUI(); });
   bg.addEventListener('play', syncMusicUI);
   bg.addEventListener('pause', syncMusicUI);
-  bg.addEventListener('ended', async () => {
-    const list = musicSrcList();
+  bg.addEventListener('ended', () => {
     if (!musicWanted) return syncMusicUI();
-    if (list.length <= 1) { syncMusicUI(); return; }
-    loadMusicPart(musicPart + 1);
-    try { await bg.play(); } catch (e) { console.warn('music part advance', e); }
-    syncMusicUI();
+    advanceMusicPart();
   });
 }
 syncMusicUI();
 
-$('#a-on').onclick = async () => {
-  if (!musicWanted || bg?.paused) await startMusic();
+// Prefer click (fires after touch on iOS); keep handler sync until play()
+function onMusicButtonTap(ev) {
+  try { ev?.preventDefault?.(); } catch {}
+  if (!musicWanted || bg?.paused) startMusicFromGesture();
   else if (readMute()) setMuted(false);
   else pauseMusic();
-};
+}
+const musicBtn = $('#a-on');
+if (musicBtn) {
+  // click alone: on iOS it still counts as the user gesture for play(), and
+  // pairing touchend+click would start then immediately pause.
+  musicBtn.onclick = onMusicButtonTap;
+}
 $('#a-mute').onclick = () => {
   const next = !readMute();
   setMuted(next);
-  if (!next && musicWanted && bg?.paused) startMusic();
+  // Unmute while wanted+paused: need a fresh gesture — require another Tap for music
+  if (!next && musicWanted && bg?.paused) { /* leave paused; user taps a-on */ syncMusicUI(); }
 };
 $('#a-vol').oninput = e => {
   const v = +e.target.value;
   writeVol(v);
   if (bg) bg.volume = v;
-  if (!readMute()) audio.setVolume(v);
+  if (!readMute()) try { audio.setVolume(v); } catch {}
 };
 document.addEventListener('visibilitychange', () => {
   audio.pageHidden(document.hidden);
