@@ -220,28 +220,31 @@ function syncMusicUI() {
   }
   const now = $('#a-now');
   if (now) {
-    if (!musicWanted) now.textContent = 'Music off · Phish 1998-07-01 · Tweezer (~23 min audience tape)';
-    else if (muted) now.textContent = 'Muted · Phish 1998-07-01 · Tweezer';
+    if (!musicWanted) now.textContent = 'Music off · Phish 1998-07-01 · Tweezer > 2001 (~38:35 audience tape)';
+    else if (muted) now.textContent = 'Muted · Phish 1998-07-01 · Tweezer > 2001';
     else if (playing) {
       const list = musicSrcList();
       const partOff = (list.length > 1 ? musicPart * (musicDurTotal / list.length) : 0);
       const t = partOff + (bg.currentTime || 0);
       const dur = list.length > 1 ? musicDurTotal : (bg.duration || musicDurTotal);
-      now.textContent = `Playing · Phish · Tweezer · ${fmtTime(t)} / ${fmtTime(dur)}`;
+      now.textContent = `Playing · Phish · Tweezer > 2001 · ${fmtTime(t)} / ${fmtTime(dur)}`;
     }
-    else now.textContent = 'Paused · Phish 1998-07-01 · Tweezer';
+    else now.textContent = 'Paused · Phish 1998-07-01 · Tweezer > 2001';
   }
 }
 function fmtTime(s) { if (!Number.isFinite(s) || s < 0) return '–'; const m = Math.floor(s / 60), sec = Math.floor(s % 60); return m + ':' + String(sec).padStart(2, '0'); }
 // Preview host: jsDelivr parts (relative music/*.mp3 404 on agent-world Pages). Never fall back to a missing relative file.
 const MUSIC_PARTS = [
-  'https://cdn.jsdelivr.net/gh/freeddan-lgtm/agent-world-mobile-preview@main/music/ph98-07-01d201-p1.mp3',
-  'https://cdn.jsdelivr.net/gh/freeddan-lgtm/agent-world-mobile-preview@main/music/ph98-07-01d201-p2.mp3',
-  'https://cdn.jsdelivr.net/gh/freeddan-lgtm/agent-world-mobile-preview@main/music/ph98-07-01d201-p3.mp3',
-  'https://cdn.jsdelivr.net/gh/freeddan-lgtm/agent-world-mobile-preview@main/music/ph98-07-01d201-p4.mp3',
+  'https://ce2-h7w3n9x5kq2m.vercel.app/music/tweezer-2001-p1.mp3',
+  'https://ce2-h7w3n9x5kq2m.vercel.app/music/tweezer-2001-p2.mp3',
+  'https://ce2-h7w3n9x5kq2m.vercel.app/music/tweezer-2001-p3.mp3',
+  'https://ce2-h7w3n9x5kq2m.vercel.app/music/tweezer-2001-p4.mp3',
+  'https://ce2-h7w3n9x5kq2m.vercel.app/music/tweezer-2001-p5.mp3',
+  'https://ce2-h7w3n9x5kq2m.vercel.app/music/tweezer-2001-p6.mp3',
+  'https://ce2-h7w3n9x5kq2m.vercel.app/music/tweezer-2001-p7.mp3',
 ];
 let musicPart = 0;
-let musicDurTotal = 23 * 60 + 17; // ~23:17 audience tape
+let musicDurTotal = 38 * 60 + 35; // ~38:35 Tweezer > 2001
 let musicUnlocked = false; // true after a gesture-tied play() succeeds
 function musicSrcList() { return MUSIC_PARTS; }
 /** Set src on the single <audio> element. Avoid load() before gesture play — it breaks iOS unlock. */
@@ -296,7 +299,7 @@ function startMusicFromGesture() {
     try { audio.enable(); loadLicensed(); } catch {}
     try { audio.setVolume(readVol()); } catch {}
     syncMusicUI();
-    if (!readMute()) ui.toast('🎵', 'Music on', 'Phish 1998-07-01 · Tweezer (~23 min)');
+    if (!readMute()) ui.toast('🎵', 'Music on', 'Phish 1998-07-01 · Tweezer > 2001 (~38:35)');
   }).catch((e) => {
     console.warn('music play() rejected', e);
     musicWanted = false;
