@@ -1,7 +1,7 @@
 // Agent World · Claude Edition (v2.0, Keystone build) — showbuddies.js
 // Read-only client for Daniel's public Show Buddies API (https://show-buddies.vercel.app, CORS open).
 // This edition never writes: posting, requests and accepts stay in Daniel's app (Rule P3, Council decision).
-export const API = 'https://show-buddies.vercel.app';
+export const API = null; // preview: live Show Buddies API disabled
 export const ORIGINAL_APP = 'https://agent-world-shows.vercel.app';
 
 // Offline sample, used when the API can't be reached (for example inside a sandboxed preview).
@@ -55,19 +55,8 @@ function normalize(shows, posts, live) {
 }
 
 export async function loadShowBuddies() {
-  const qs = new URLSearchParams(location.search);
-  if (qs.get('sb') === 'sample' || qs.has('vtest')) return normalize(SAMPLE.shows, SAMPLE.posts, false);
-  const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 7000);
-  try {
-    const r = await fetch(API + '/v1/shows', { signal: ctl.signal, cache: 'no-store' });
-    if (!r.ok) throw new Error('shows ' + r.status);
-    const shows = (await r.json()).shows || [];
-    const withPosts = shows.filter(s => s.posts > 0);
-    const posts = (await Promise.all(withPosts.map(s => fetch(API + '/v1/posts?show=' + encodeURIComponent(s.id), { signal: ctl.signal, cache: 'no-store' }).then(x => x.json()).then(j => (j.posts || []).map(p => ({ ...p, show: p.show || s.id }))).catch(() => [])))).flat();
-    return normalize(shows, posts, true);
-  } catch (e) {
-    return normalize(SAMPLE.shows, SAMPLE.posts, false);
-  } finally { clearTimeout(to); }
+  // Preview (GitHub Pages): never call the live Show Buddies backend — local sample only.
+  return normalize(SAMPLE.shows, SAMPLE.posts, false);
 }
 
 // Fixes audit F3: counts are people, not posts.

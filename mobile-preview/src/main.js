@@ -44,8 +44,8 @@ async function refreshShows() {
     const o = sb.stages[s.id], next = o?.shows?.find(x => !x.past);
     world.setStageInfo(s.id, next ? `${fmtDate(next.date)} · ${next.venue}${next.tag ? ' · ' + next.tag : ''}` : 'Add a show for any band', countText(o));
   }
-  $('#sbstate').textContent = sb.live ? 'Show Buddies: live (read-only)' : 'Show Buddies: offline sample';
-  $('#sbstate').className = 'tag ' + (sb.live ? 'live' : 'sim');
+  $('#sbstate').textContent = 'TEST FEED (preview, not live)';
+  $('#sbstate').className = 'tag sim';
 }
 const fmtDate = d => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 
@@ -58,7 +58,7 @@ world.onTick = (dt, t) => {
   if (audio.on && audio.nearest) {
     frontRow += dt; if (frontRow > 60) ui.badge('frontrow');
     const st = audio.nearest, f = st.file, sname = STAGES.find(x => x.id === st.id)?.name || st.label || st.id;
-    const txt = f ? `Now playing at ${sname}: ${f.name}` : `Now playing at ${sname}: Phish 1998-07-01 · Tweezer > 2001`;
+    const txt = f ? `Now playing at ${sname}: ${f.name}` : `Now playing at ${sname}: Phish 1998-07-01 · Tweezer > 2001 (~38:35)`;
     if ($('#a-now').textContent !== txt) $('#a-now').textContent = txt;
   } else if (typeof musicWanted !== 'undefined' && musicWanted) {
     // Background music owns the status line when no stage is nearby
@@ -107,7 +107,7 @@ function showStage(id) {
     <div class="p-head"><span class="av" style="--c:${s.color}">${s.emoji}</span><div><h2>${esc(s.name)}</h2><p class="mute">${esc(countText(o))}</p></div></div>
     <p>${people ? `${people} fan${people === 1 ? "'s agent is" : "s' agents are"} hanging out by the stage.` : 'No fans have posted for this stage yet. Be the first on Show Buddies.'}</p>
     <h3>Live band audio</h3>
-    <p class="mute">${file?.licensed ? `Licensed recording: <b>${esc(file.licensed.title)}</b> by ${esc(file.licensed.artist)}` : file ? `Your file: ${esc(file.name)}` : `Phish 1998-07-01 Copenhagen · Tweezer > 2001 (~38:35)`}</p>
+    <p class="mute">${file?.licensed ? `Licensed recording: <b>${esc(file.licensed.title)}</b> by ${esc(file.licensed.artist)}` : file ? `Your file: ${esc(file.name)}` : `Phish 1998-07-01 · Tweezer > 2001 (~38:35)`}</p>
     <p class="fine">Acoustics: ${esc(audio.venueOf(id).name)} · reverb ≈ ${audio.venueOf(id).rt60[1]} s mid-band (modeled, not measured)</p>
     ${file?.licensed ? `<p class="fine">Used with permission from ${esc(file.licensed.license.grantedBy)} (${esc(file.licensed.license.date)}) · ${esc(file.licensed.license.scope)} · Rule A5</p>` : tracks.some(t => t.stage === id) ? '<p class="fine">A licensed recording is set for this stage. It loads when you turn sound on.</p>' : ''}
     <div class="row wrap">
@@ -194,12 +194,14 @@ $('#b-q').onclick = () => world.setQuality(QS[(QS.indexOf(world.qName) + 1) % 3]
 $('#b-sim').onclick = () => { ui.simOn = !ui.simOn; $('#b-sim').textContent = ui.simOn ? '⏸ Pause sim' : '▶ Resume sim'; $('#simtxt').textContent = ui.simOn ? 'Simulated live collaboration' : 'Simulation paused'; };
 // ---------- background music (HTML5 <audio>, iOS Safari–safe user-gesture start) ----------
 const bg = $('#bg-music');
-const LS_MUTE = 'aw-ce2-music-muted';
+const LS_MUTE = 'aw-ce2-music-muted'; // legacy key — cleared on load; mute is session-only
 const LS_VOL = 'aw-ce2-music-vol';
 const LS_WANT = 'aw-ce2-music-want'; // user previously started music this session/device
 let musicWanted = false;
-function readMute() { try { return localStorage.getItem(LS_MUTE) === '1'; } catch { return false; } }
-function writeMute(m) { try { localStorage.setItem(LS_MUTE, m ? '1' : '0'); } catch {} }
+let sessionMuted = false; // never persists across page loads
+try { localStorage.removeItem(LS_MUTE); } catch {}
+function readMute() { return !!sessionMuted; }
+function writeMute(m) { sessionMuted = !!m; try { localStorage.removeItem(LS_MUTE); } catch {} }
 function readVol() { try { const v = parseFloat(localStorage.getItem(LS_VOL)); return Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0.7; } catch { return 0.7; } }
 function writeVol(v) { try { localStorage.setItem(LS_VOL, String(v)); } catch {} }
 function syncMusicUI() {
@@ -276,8 +278,10 @@ function startMusicFromGesture() {
   if (!bg) return;
   musicWanted = true;
   try { localStorage.setItem(LS_WANT, '1'); } catch {}
+  // Tap for music always starts audible (mute is session-only and cleared here)
+  writeMute(false);
   bg.loop = false; // multi-part playlist via ended
-  bg.muted = readMute();
+  bg.muted = false;
   bg.volume = readVol();
   try { bg.setAttribute('playsinline', ''); bg.playsInline = true; } catch {}
   // Ensure part 1 (or current) is already the src — do not call load() here
@@ -334,7 +338,8 @@ function advanceMusicPart() {
 // restore volume (never autoplay); pin jsDelivr p1 as src up front
 if (bg) {
   bg.volume = readVol();
-  bg.muted = readMute();
+  writeMute(false);
+  bg.muted = false;
   try { bg.setAttribute('playsinline', ''); bg.playsInline = true; } catch {}
   setMusicPart(0, { load: false });
   $('#a-vol').value = String(bg.volume);
@@ -388,89 +393,40 @@ if (world.weakDevice || matchMedia('(pointer:coarse)').matches || innerWidth < 5
   world.opt.delete('batch');
 }
 
-// ---------- live agent bridge (HTTP poll or WebSocket) ----------
-// AW_CONFIG.bridge: absolute or same-origin URL to /api/world (HTTP) or wss://… (legacy stub).
-function bridgeBase(url) {
+// ---------- preview test feed (local only — never hits /api/world or live Show Buddies) ----------
+// GitHub Pages preview is disconnected from ce2 bridge and show-buddies backends.
+const TEST_FEED_AGENTS = [
+  { id: 'preview-1', name: 'PreviewFan', agent: 'hermes', color: '#38bdf8', icon: '🟡', zone: 'phish-msg', activity: 'Checking the MSG rail' },
+  { id: 'preview-2', name: 'TapeScout', agent: 'claude', color: '#a3e635', icon: '🎙️', zone: 'garden', activity: 'Hanging by the Rule Book' },
+  { id: 'preview-3', name: 'BeachPilot', agent: 'travelbot', color: '#f472b6', icon: '🌴', zone: 'phish-rm', activity: 'Walking the beach pit' },
+];
+const TEST_FEED_LINES = [
+  { name: 'PreviewFan', text: 'Test feed only — not the live world.' },
+  { name: 'TapeScout', text: 'Tweezer > 2001 on every stage for the preview.' },
+  { name: 'BeachPilot', text: 'Moon Palace zip line looks good from here.' },
+];
+function startPreviewTestFeed() {
+  const label = 'TEST FEED (preview, not live)';
+  const el = $('#simtxt'); if (el) el.textContent = label;
+  const sbEl = $('#sbstate'); if (sbEl) { sbEl.textContent = label; sbEl.className = 'tag sim'; }
+  ui.feed('🧪 <b>TEST FEED (preview, not live)</b> — local simulated presence only', 'sim');
   try {
-    const u = new URL(url, location.href);
-    // Accept .../api/world or .../api/world/feed
-    let path = u.pathname.replace(/\/+$/, '');
-    if (path.endsWith('/feed')) path = path.slice(0, -5);
-    u.pathname = path;
-    u.search = ''; u.hash = '';
-    return u.href.replace(/\/+$/, '');
-  } catch { return String(url || '').replace(/\/+$/, ''); }
-}
-function applyBridgeMessage(m) {
-  if (!m || !m.type) return;
-  const findLive = () => {
-    if (m.agent && String(m.agent).startsWith('live-')) return sim.get(m.agent);
-    if (m.agentId) return sim.get('live-' + m.agentId) || sim.visitors?.get('live-' + m.agentId);
-    if (m.agent) return sim.get(m.agent) || [...sim.agents.values()].find(x => x.name === m.agent || x.key === m.agent);
-    if (m.name) return [...(sim.visitors?.values() || [])].find(x => x.name === m.name) || [...sim.agents.values()].find(x => x.name === m.name);
-    return null;
-  };
-  if (m.type === 'join' && (m.agentId || m.id)) {
-    sim.ensureVisitor({ id: m.agentId || m.id, name: m.name, agent: m.agentName || m.runtime, color: m.color, icon: m.icon, zone: m.zone || 'garden', activity: m.text || 'Joined' });
-    return;
-  }
-  if (m.type === 'leave' && (m.agentId || m.id)) { sim.removeVisitor(m.agentId || m.id); return; }
-  let a = findLive();
-  if (m.type === 'say') {
-    if (!a && m.name) a = sim.ensureVisitor({ id: m.agentId || ('tmp-' + m.name), name: m.name, zone: m.zone || 'garden' });
-    if (a) { a.say(String(m.text || '').slice(0, 200), 4); ui.feed(`<b>${esc(a.name)}</b>: ${esc(m.text || '')}`, 'live'); }
-    return;
-  }
-  if (m.type === 'goto') {
-    if (!a && m.name) a = sim.ensureVisitor({ id: m.agentId || ('tmp-' + m.name), name: m.name, zone: m.text || m.zone });
-    if (a) sim.applyLiveGoto(a, m.text || m.zone);
-    return;
-  }
-  if (m.type === 'interaction') ui.feed(`<b>${esc(m.from)}</b> → <b>${esc(m.to)}</b> · ${esc(m.act || '')}`, 'live');
-  if (m.type === 'intent') ui.feed(`✅ <b>${esc(m.name || 'Tour Agent')}</b> · ${esc(m.text || '')}`, 'live');
-}
-function connectHttpBridge(url) {
-  const base = bridgeBase(url);
-  let since = Date.now() - 60e3;
-  let seen = new Set();
-  const tick = async () => {
+    sim.syncVisitors(TEST_FEED_AGENTS.map(a => ({ ...a, stage: a.zone, x: 0, z: 0, joinedAt: Date.now(), lastSeen: Date.now() })));
+  } catch (e) { console.warn('test feed visitors', e); }
+  let i = 0;
+  const tick = () => {
+    const line = TEST_FEED_LINES[i % TEST_FEED_LINES.length]; i++;
     try {
-      const r = await fetch(base + '/feed?since=' + since, { cache: 'no-store' });
-      if (!r.ok) throw new Error('feed ' + r.status);
-      const j = await r.json();
-      if (Array.isArray(j.agents)) sim.syncVisitors(j.agents);
-      for (const m of j.messages || []) {
-        if (seen.has(m.id)) continue;
-        seen.add(m.id);
-        if (seen.size > 500) seen = new Set([...seen].slice(-200));
-        applyBridgeMessage(m);
-        if (m.ts && m.ts > since) since = m.ts;
-      }
-      if (j.serverTime) { /* keep */ }
-      const el = $('#simtxt');
-      if (el && !el.textContent.includes('agent bridge')) el.textContent = 'Live Tour Agent bridge · ' + (j.agents?.length || 0) + ' joined';
-    } catch (e) {
-      /* fail quietly (CORS / offline) — keep simulated ambient */
-      const el = $('#simtxt'); if (el && !/simulated ambient|agent bridge/i.test(el.textContent)) el.textContent = 'Simulated ambient';
-    }
+      const a = [...(sim.visitors?.values?.() || [])].find(x => x.name === line.name)
+        || sim.ensureVisitor({ id: 'preview-' + line.name, name: line.name, zone: 'garden' });
+      if (a) { a.say(line.text, 4); ui.feed(`<b>${esc(a.name)}</b>: ${esc(line.text)} <span class="tag sim">test</span>`, 'sim'); }
+    } catch (e) { console.warn('test feed say', e); }
+    const s = $('#simtxt'); if (s) s.textContent = label + ' · ' + TEST_FEED_AGENTS.length + ' simulated';
   };
-  $('#simtxt') && ($('#simtxt').textContent = 'Connecting to Tour Agent bridge…');
-  ui.feed('🔌 <b>Tour Agent bridge</b> on — live avatars will appear when agents join', 'live');
-  tick();
-  setInterval(tick, 2500);
+  setTimeout(tick, 2500);
+  setInterval(tick, 14000);
 }
-function connectWsBridge(url) {
-  let ws; try { ws = new WebSocket(url); } catch (e) { ui.toast('⚠️', 'Bridge URL rejected', String(e.message || e)); return; }
-  ws.onopen = () => { $('#simtxt').textContent = 'Connected to the agent bridge'; ui.feed('🔌 <b>Connected to the agent bridge</b>, showing real activity', 'live'); };
-  ws.onmessage = ev => { let m; try { m = JSON.parse(ev.data); } catch { return; } applyBridgeMessage(m); };
-  ws.onclose = () => { $('#simtxt').textContent = 'Bridge disconnected · simulated'; setTimeout(() => connectWsBridge(url), 8000); };
-}
-function connectBridge(url) {
-  if (!url) return;
-  if (/^wss?:/i.test(url)) return connectWsBridge(url);
-  return connectHttpBridge(url);
-}
-if (CFG.bridge) connectBridge(CFG.bridge);
+startPreviewTestFeed();
 
 // ---------- boot ----------
 window.AgentWorld = Object.assign(window.AgentWorld || {}, { THREE, world, sim, audio, ui, rulebook: rules, packs: [], version: '2.0.0', showBuddies: () => sb, startMusicFromGesture });
