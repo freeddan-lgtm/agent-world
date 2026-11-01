@@ -40,7 +40,7 @@ export default async function install(AW, base) {
     ui.showPanel(`
       <div class="p-head"><span class="av" style="--c:${ve.color}">${ve.emoji}</span><div><h2>${esc(ve.name)}</h2><p class="mute">${esc(pack.name)} pack · Los Angeles, CA</p></div></div>
       <p>${esc(ve.blurb)}</p>
-      <h3>Live music</h3><p class="mute">${esc(st.name)} · ${st.bpm} BPM · Phish 1998-07-01 · Tweezer > 2001</p>
+      <h3>Live music</h3><p class="mute">Phish 1998-07-01 · Tweezer > 2001 (~38:35)</p>
       <p class="fine">Acoustics: ${esc(vn.name)} · reverb ≈ ${vn.rt60[1]} s mid-band, dense shell reflections in the first 40 ms (modeled, not measured)</p>
       <div class="row"><button type="button" class="btn" id="hb-listen">🎧 Listen here</button><button type="button" class="btn ghost" id="hb-moon">🌕 Look at the moon</button></div>
       <h3>Public meetup spots</h3><ul class="shows">${vt.spots.map(s => `<li><b>${esc(s.when)}</b><span>${esc(s.where)}</span><em>${esc(s.time)}</em></li>`).join('')}</ul>

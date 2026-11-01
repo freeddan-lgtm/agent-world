@@ -57,7 +57,7 @@ export default async function install(AW, base) {
     ui.showPanel(`
       <div class="p-head"><span class="av" style="--c:${ve.color}">${ve.emoji}</span><div><h2>${esc(ve.name)}</h2><p class="mute">${esc(pack.name)} pack · ${esc(ve.venueType)}</p></div></div>
       <p>${esc(ve.blurb)}</p>
-      ${ve.music ? `<h3>Live band audio</h3><p class="mute">${esc(audio.styleOf(id).name)} · ${audio.styleOf(id).bpm} BPM · Phish 1998-07-01 · Tweezer > 2001</p><p class="fine">Acoustics: ${esc(audio.venueOf(id).name)} · reverb ≈ ${audio.venueOf(id).rt60[1]} s (modeled)</p><div class="row"><button type="button" class="btn" id="fg-listen">🎧 Listen here</button></div>` : ''}
+      ${ve.music ? `<h3>Live band audio</h3><p class="mute">Phish 1998-07-01 · Tweezer > 2001 (~38:35)</p><p class="fine">Acoustics: ${esc(audio.venueOf(id).name)} · reverb ≈ ${audio.venueOf(id).rt60[1]} s (modeled)</p><div class="row"><button type="button" class="btn" id="fg-listen">🎧 Listen here</button></div>` : ''}
       ${vt ? `<h3>Public meetup spots</h3><ul class="shows">${vt.spots.map(s => `<li><b>${esc(s.when)}</b><span>${esc(s.where)}</span><em>${esc(s.time)}</em></li>`).join('')}</ul><h3>Sections</h3><p class="mute">${vt.sections.map(esc).join(' · ')}</p>` : ''}
       ${id === 'fg-booth' ? `<h3>Meetup spots by venue type</h3><ul class="shows">${Object.entries(data.venueTypes).map(([k, t]) => `<li><b>${esc(k)}</b><span>${esc(t.spots[0].where)}</span><em>${esc(t.spots[0].time)}</em></li>`).join('')}</ul>` : ''}
       ${here.length ? `<h3>Who's here</h3><div class="fans">${here.map(a => `<button type="button" class="fanbtn" data-fg-ag="${a.key}" style="--c:${a.color}">${a.icon} ${esc(a.name)} <small>${esc(a.title)}</small></button>`).join('')}</div>` : ''}
