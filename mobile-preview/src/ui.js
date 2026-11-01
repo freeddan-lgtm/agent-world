@@ -58,11 +58,11 @@ export class UI {
   closeSheet() { $('#sheet').hidden = true; }
 
   audioState(a) {
-    // Background music UI owns #a-on / #a-now; synth state is reflected only when music UI is absent.
+    // Background music UI owns #a-on / #a-now; do not overwrite with synth/band-sound wording.
     if (!$('#bg-music')) {
-      $('#a-on').textContent = a.on ? '🔇 Turn off band sound' : '🔊 Turn on band sound';
+      $('#a-on').textContent = a.on ? '🔇 Mute stage audio' : '🎵 Tap for music';
       $('#a-on').setAttribute('aria-pressed', a.on);
-      if (!a.on) $('#a-now').textContent = 'Sound is off. Fly to a stage and turn it on.';
+      if (!a.on) $('#a-now').textContent = 'Music off · Phish 1998-07-01 · Tweezer > 2001';
     }
   }
 

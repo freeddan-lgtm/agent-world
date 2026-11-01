@@ -272,7 +272,7 @@ html,body{overflow-x:hidden;max-width:100vw}
   // Agent World config. bridge: 'wss://…' for a live agent feed. packs: expansion packs to load.
   // opt: render optimizations kept by the Keystone build loop (data/build_ledger.json); ?opt=none turns them off.
   // dialogProvider: optional async function that proposes dialog lines (every line is validated; see src/dialog.js).
-  window.AW_CONFIG = { bridge: new URL('/api/world', location.href).href, opt: ['batch', 'casters'], dialogProvider: null, packs: [
+  window.AW_CONFIG = { bridge: 'https://ce2-h7w3n9x5kq2m.vercel.app/api/world', opt: ['batch', 'casters'], dialogProvider: null, packs: [
     { adapter: 'packs/festival-grounds/cc-edition-adapter.js', base: 'packs/festival-grounds/' },
     { adapter: 'packs/hollywood-bowl/cc-edition-adapter.js', base: 'packs/hollywood-bowl/' },
     { adapter: 'packs/moon-palace-cancun/cc-edition-adapter.js', base: 'packs/moon-palace-cancun/' },

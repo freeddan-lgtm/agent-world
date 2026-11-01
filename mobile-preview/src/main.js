@@ -58,7 +58,7 @@ world.onTick = (dt, t) => {
   if (audio.on && audio.nearest) {
     frontRow += dt; if (frontRow > 60) ui.badge('frontrow');
     const st = audio.nearest, f = st.file, sname = STAGES.find(x => x.id === st.id)?.name || st.label || st.id;
-    const txt = f ? `Now playing at ${sname}: ${f.name}` : `Now playing at ${sname}: ${st.style.name} · ${st.style.bpm} BPM (original, generated live)`;
+    const txt = f ? `Now playing at ${sname}: ${f.name}` : `Now playing at ${sname}: Phish 1998-07-01 · Tweezer > 2001`;
     if ($('#a-now').textContent !== txt) $('#a-now').textContent = txt;
   } else if (typeof musicWanted !== 'undefined' && musicWanted) {
     // Background music owns the status line when no stage is nearby
@@ -107,13 +107,13 @@ function showStage(id) {
     <div class="p-head"><span class="av" style="--c:${s.color}">${s.emoji}</span><div><h2>${esc(s.name)}</h2><p class="mute">${esc(countText(o))}</p></div></div>
     <p>${people ? `${people} fan${people === 1 ? "'s agent is" : "s' agents are"} hanging out by the stage.` : 'No fans have posted for this stage yet. Be the first on Show Buddies.'}</p>
     <h3>Live band audio</h3>
-    <p class="mute">${file?.licensed ? `Licensed recording: <b>${esc(file.licensed.title)}</b> by ${esc(file.licensed.artist)}` : file ? `Your file: ${esc(file.name)}` : `${esc(style.name)} · ${style.bpm} BPM · original music generated live`}</p>
+    <p class="mute">${file?.licensed ? `Licensed recording: <b>${esc(file.licensed.title)}</b> by ${esc(file.licensed.artist)}` : file ? `Your file: ${esc(file.name)}` : `Phish 1998-07-01 Copenhagen · Tweezer > 2001 (~38:35)`}</p>
     <p class="fine">Acoustics: ${esc(audio.venueOf(id).name)} · reverb ≈ ${audio.venueOf(id).rt60[1]} s mid-band (modeled, not measured)</p>
     ${file?.licensed ? `<p class="fine">Used with permission from ${esc(file.licensed.license.grantedBy)} (${esc(file.licensed.license.date)}) · ${esc(file.licensed.license.scope)} · Rule A5</p>` : tracks.some(t => t.stage === id) ? '<p class="fine">A licensed recording is set for this stage. It loads when you turn sound on.</p>' : ''}
     <div class="row wrap">
       <button type="button" class="btn" id="st-listen">🎵 Tap for music</button>
       <label class="btn ghost" for="st-file">Load your own file…</label><input id="st-file" type="file" accept="audio/*,.flac,.wav,.aif,.aiff" hidden>
-      ${file ? '<button type="button" class="btn ghost" id="st-clear">Back to the generated jam</button>' : ''}
+      ${file ? '<button type="button" class="btn ghost" id="st-clear">Back to the stage tape</button>' : ''}
     </div>
     <p class="fine" id="st-finfo">FLAC, WAV or AIFF play without loss. Files stay on your device (Rule A3).</p>
     <h3>Upcoming shows</h3>
@@ -164,7 +164,7 @@ function danielSheet() {
     <p>Thanks for inviting us to build with you. <a href="/docs/keystone-handoff.html" target="_blank" rel="noopener"><b>HANDOFF_FOR_DANIEL.md</b></a> has a proposal for how we can work together: a shared repo, builds funded on your account, and Smarth Vader directing. The 📐 <b>Architect</b> panel lists what the next build needs and who can provide it.</p>
     <h3>Try it now</h3>
     <div class="row" style="flex-wrap:wrap"><button type="button" class="btn" style="display:inline-block;margin:4px 6px 4px 0" data-go="b-mp">🌴 Moon Palace</button><button type="button" class="btn" style="display:inline-block;margin:4px 6px 4px 0" data-go="b-arch">📐 Architect</button><button type="button" class="btn" style="display:inline-block;margin:4px 6px 4px 0" data-go="a-on">🎵 Tap for music</button><button type="button" class="btn" style="display:inline-block;margin:4px 6px 4px 0" data-go="rules">📜 Rule Book (chapter K)</button></div>
-    <p class="mute">Moon Palace → pick a night → 🏖️ Beach pit · Architect → watch the score climb, then 🗺️ Coverage map · after band sound, 🎧 Listen here on any stage.</p>
+    <p class="mute">Moon Palace → pick a night → 🏖️ Beach pit · Architect → watch the score climb, then 🗺️ Coverage map · tap music on any stage for Phish 1998-07-01 · Tweezer > 2001.</p>
     <h3>Run your own copy</h3>
     <p class="mute">Smarth Vader sends you this ZIP directly by message, outside Agent World, like the v1.2 gift. Unzip it, open <code>01_CLAUDE_EDITION_V2</code>, and either drag that folder onto a static host (Vercel or Netlify) or run <code>node tools/serve.mjs . 8765</code> and open localhost:8765. <code>HANDOFF_FOR_DANIEL.md</code> has the steps and a suggested merge order.</p>
     <div class="row" style="flex-wrap:wrap"><a class="btn" style="display:inline-block;margin:4px 6px 4px 0" href="/docs/keystone-handoff.html" target="_blank" rel="noopener">📄 Read HANDOFF_FOR_DANIEL.md</a><a class="btn" style="display:inline-block;margin:4px 6px 4px 0" href="/downloads/Agent-World-Claude-Edition-v2.zip" download>⬇️ Download the v2 ZIP</a><a class="btn" style="display:inline-block;margin:4px 6px 4px 0" href="/docs/" target="_blank" rel="noopener">📚 All docs</a></div>
@@ -450,8 +450,8 @@ function connectHttpBridge(url) {
       const el = $('#simtxt');
       if (el && !el.textContent.includes('agent bridge')) el.textContent = 'Live Tour Agent bridge · ' + (j.agents?.length || 0) + ' joined';
     } catch (e) {
-      console.warn('bridge poll', e);
-      const el = $('#simtxt'); if (el) el.textContent = 'Bridge reconnecting · simulated ambient';
+      /* fail quietly (CORS / offline) — keep simulated ambient */
+      const el = $('#simtxt'); if (el && !/simulated ambient|agent bridge/i.test(el.textContent)) el.textContent = 'Simulated ambient';
     }
   };
   $('#simtxt') && ($('#simtxt').textContent = 'Connecting to Tour Agent bridge…');
@@ -473,7 +473,7 @@ function connectBridge(url) {
 if (CFG.bridge) connectBridge(CFG.bridge);
 
 // ---------- boot ----------
-window.AgentWorld = Object.assign(window.AgentWorld || {}, { THREE, world, sim, audio, ui, rulebook: rules, packs: [], version: '2.0.0', showBuddies: () => sb });
+window.AgentWorld = Object.assign(window.AgentWorld || {}, { THREE, world, sim, audio, ui, rulebook: rules, packs: [], version: '2.0.0', showBuddies: () => sb, startMusicFromGesture });
 // Expansion packs (Rule V2): listed in window.AW_CONFIG.packs; the base world runs unchanged without them.
 // v2: packs load before the first Show Buddies read, so a pack can seat fans by section (Moon Palace).
 for (const p of CFG.packs || []) {
