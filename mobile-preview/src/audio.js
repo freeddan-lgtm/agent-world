@@ -303,9 +303,10 @@ export class AudioEngine {
 
   async enable() {
     if (!this.ctx) this.build();
-    await this.ctx.resume();
-    this.on = true;
-    clearInterval(this.timer); this.timer = setInterval(() => this.schedule(), 25);
+    // Generated band music removed (Daniel, 2026-11-01): every music button plays the Tweezer tape only.
+    try { await this.ctx.resume(); } catch {}
+    this.on = false;
+    clearInterval(this.timer);
     this.ui?.audioState?.(this);
   }
   disable() { this.on = false; clearInterval(this.timer); this.ctx?.suspend(); this.ui?.audioState?.(this); }

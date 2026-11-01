@@ -111,7 +111,7 @@ function showStage(id) {
     <p class="fine">Acoustics: ${esc(audio.venueOf(id).name)} · reverb ≈ ${audio.venueOf(id).rt60[1]} s mid-band (modeled, not measured)</p>
     ${file?.licensed ? `<p class="fine">Used with permission from ${esc(file.licensed.license.grantedBy)} (${esc(file.licensed.license.date)}) · ${esc(file.licensed.license.scope)} · Rule A5</p>` : tracks.some(t => t.stage === id) ? '<p class="fine">A licensed recording is set for this stage. It loads when you turn sound on.</p>' : ''}
     <div class="row wrap">
-      <button type="button" class="btn" id="st-listen">🎧 Listen here</button>
+      <button type="button" class="btn" id="st-listen">🎵 Tap for music</button>
       <label class="btn ghost" for="st-file">Load your own file…</label><input id="st-file" type="file" accept="audio/*,.flac,.wav,.aif,.aiff" hidden>
       ${file ? '<button type="button" class="btn ghost" id="st-clear">Back to the generated jam</button>' : ''}
     </div>
@@ -121,7 +121,7 @@ function showStage(id) {
     ${fansHere.length ? `<h3>Fans here</h3><div class="fans">${fansHere.map(p => `<button type="button" class="fanbtn" data-fan="${esc(p.id)}">${esc(p.handle)} <small>${esc(p.dateShort)} · ${esc(p.section)}</small></button>`).join('')}</div>` : ''}
     <a class="btn sm" href="${ORIGINAL_APP}" target="_blank" rel="noopener">Go solo on Show Buddies ↗</a>
     <p class="fine">This edition reads Show Buddies and never posts (Rule P3). Posting and meetups happen in Daniel's app.</p>`);
-  $('#st-listen').onclick = async () => { await audio.enable(); loadLicensed(); audio.focus = id; world.flyToStage(id); };
+  $('#st-listen').onclick = () => { if (!musicWanted || bg?.paused) startMusicFromGesture(); audio.focus = id; world.flyToStage(id); };
   $('#st-file').onchange = async e => {
     const f = e.target.files[0]; if (!f) return; $('#st-finfo').textContent = 'Decoding…';
     try { const info = await audio.loadFile(id, f); $('#st-finfo').textContent = info; ui.toast('🎵', 'Playing your file at ' + s.name, f.name); world.flyToStage(id); }
@@ -296,7 +296,7 @@ function startMusicFromGesture() {
   // Handle the promise AFTER the sync play() call (does not break gesture unlock)
   Promise.resolve(playResult).then(() => {
     musicUnlocked = true;
-    try { audio.enable(); loadLicensed(); } catch {}
+    /* generated stage music removed */
     try { audio.setVolume(readVol()); } catch {}
     syncMusicUI();
     if (!readMute()) ui.toast('🎵', 'Music on', 'Phish 1998-07-01 · Tweezer > 2001 (~38:35)');
