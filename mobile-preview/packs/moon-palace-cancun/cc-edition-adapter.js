@@ -65,7 +65,7 @@ export default async function install(AW, base) {
       <h3>Who's going${show ? ' · ' + esc(show.tag || fmt(show.date)) : ''}</h3>
       ${secs.map(sec => { const here = posts.filter(p => p.section === sec); return here.length ? `<div class="post"><b>${esc(sec)}</b> · ${here.map(p => esc(p.handle)).join(', ')}</div>` : ''; }).join('') || '<p class="mute">Nobody has posted for this night yet.</p>'}
       ${sel === 'phish-2027-01-29-rm' ? `<p class="fine">The moon for N3 (Fri Jan 29): ${esc(mi.phase)}, about ${Math.round(mi.illum * 100)}% lit (±15%), rising about ${esc(mi.riseFrom)}–${esc(mi.riseTo)} local, after the show. Mean-motion estimate; the 3D moon is drawn as it rises over the sea.</p>` : ''}
-      <h3>Live music</h3><p class="mute">${esc(st.name)} · ${st.bpm} BPM · Phish 1998-07-01 · Tweezer > 2001</p>
+      <h3>Live music</h3><p class="mute">Phish 1998-07-01 · Tweezer > 2001 (~38:35)</p>
       <p class="fine">Acoustics: ${esc(vn.name)} · reverb ≈ ${vn.rt60[1]} s mid-band (modeled, not measured)</p>
       <div class="row wrap"><button type="button" class="btn" id="mp-listen">🎧 Listen here</button><button type="button" class="btn ghost" id="mp-pit">🏖️ Beach pit</button><button type="button" class="btn ghost" id="mp-arch">📐 Layout search</button><button type="button" class="btn ghost" id="mp-moon">🌙 Moon over the sea</button></div>
       <h3>Who works here</h3><div class="fans">${pack.agents.map(a => `<button type="button" class="fanbtn" data-mp-ag="${a.key}" style="--c:${a.color}">${a.icon} ${esc(a.name)} <small>${esc(a.title)}</small></button>`).join('')}</div>
